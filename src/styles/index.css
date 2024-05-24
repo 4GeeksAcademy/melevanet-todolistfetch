@@ -1,12 +1,11 @@
 
-/* 
-
-    You can write your own styles here...
+.todolist{
+    display: block;
+    margin: auto;
+    padding: 8px;
+    width: 300px;
+    border: 1px solid gray;
+    min-height: 100px;
+    align-content: center;
     
-    
-    ...Or you can use the import command to include 
-    other sylesheets into your bunde as well, e.j:
-    
-    import 'relative/path/to/stylesheet.scss';
-
-*/
+}
