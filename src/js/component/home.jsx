@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-//create your first component
 const Home = () => {
   const [inputValue, setInputValue] = useState("");
-  const [Tareas, setTareas] = useState([]);
+  const [tareas, setTareas] = useState([]);
   const [user, setUser] = useState(null);
 
-  const apiEndpoint = "https://playground.4geeks.com/todo/todos/vbarrera";
+  const apiEndpoint = "https://playground.4geeks.com/todo/users/vbarrera";
 
   const validateTareas = (tarea) => {
     if (!tarea || !tarea.trim()) {
@@ -17,7 +16,7 @@ const Home = () => {
   };
 
   const createUser = async () => {
-    await fetch("https://playground.4geeks.com/users/vbarrera", {
+    await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -32,7 +31,7 @@ const Home = () => {
   };
 
   const getUser = async () => {
-    const response = await fetch("https://playground.4geeks.com/users/vbarrera");
+    const response = await fetch(apiEndpoint);
     if (response.status === 404) {
       createUser();
     } else {
@@ -56,52 +55,36 @@ const Home = () => {
     getUser();
   }, []);
 
-  const createTarea = async (newTarea) => {
-    if (!validateTareas(newTarea)) return;
-    const updatedTareas = [...Tareas, newTarea];
-    setTareas(updatedTareas);
+  const syncWithServer = async (tasks) => {
     try {
       await fetch(apiEndpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedTareas),
+        body: JSON.stringify(tasks),
       });
     } catch (error) {
-      console.error('Error adding task:', error);
+      console.error('Error syncing tasks:', error);
     }
   };
 
-  const deleteTarea = async (tareaToDelete) => {
-    const updatedTareas = Tareas.filter(tarea => tarea !== tareaToDelete);
+  const createTarea = async (newTarea) => {
+    if (!validateTareas(newTarea)) return;
+    const updatedTareas = [...tareas, { label: newTarea, done: false }];
     setTareas(updatedTareas);
-    try {
-      await fetch(apiEndpoint, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedTareas),
-      });
-    } catch (error) {
-      console.error('Error deleting task:', error);
-    }
+    syncWithServer(updatedTareas);
+  };
+
+  const deleteTarea = async (index) => {
+    const updatedTareas = tareas.filter((_, i) => i !== index);
+    setTareas(updatedTareas);
+    syncWithServer(updatedTareas);
   };
 
   const clearTarea = async () => {
     setTareas([]);
-    try {
-      await fetch(apiEndpoint, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify([]),
-      });
-    } catch (error) {
-      console.error('Error clearing tasks:', error);
-    }
+    syncWithServer([]);
   };
 
   return (
@@ -123,18 +106,17 @@ const Home = () => {
           />
         </li>
 
-        {Tareas.map((item, index) => (
+        {tareas.map((item, index) => (
           <li key={index}>
-            {item}
-            <button onClick={() => deleteTarea(item)}>🗑</button>
+            {item.label}
+            <button onClick={() => deleteTarea(index)}>🗑</button>
           </li>
         ))}
       </ul>
-      <div>{Tareas.length} Tareas</div>
+      <div>{tareas.length} Tareas</div>
       <button onClick={clearTarea}>Limpiar todas las tareas</button>
     </div>
   );
 };
 
 export default Home;
-
